@@ -1,1 +1,1 @@
-### Testing git connection from Azure
+### Testing git connection from DB community edition
