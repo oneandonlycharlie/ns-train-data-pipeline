@@ -1,4 +1,5 @@
 from pyspark.sql import DataFrame
+from delta.tables import DeltaTable
 # TO DO - add test to function
 def clean_column_names(df:DataFrame) -> DataFrame: 
   """
@@ -17,3 +18,25 @@ def clean_column_names(df:DataFrame) -> DataFrame:
       .lower() # convert to snake case
     df = df.withColumnRenamed(column, new_column_name)
   return df
+
+
+def merge_data(input_df, table_name, schema_name, merge_condition, spark):
+  if (spark.catalog.tableExists(f"{schema_name}.{table_name}")):
+    deltaTable = DeltaTable.forName(spark, f"{schema_name}.{table_name}")
+    deltaTable.alias('target') \
+    .merge(
+      input_df.alias('source'),
+      merge_condition
+    ) \
+    .whenMatchedUpdateAll() \
+    .whenNotMatchedInsertAll(
+    ) \
+    .execute()
+  else:
+    input_df.write.format("delta").mode("append").saveAsTable(f"{schema_name}.{table_name}")
+
+
+
+
+
+
